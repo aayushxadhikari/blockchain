@@ -1,7 +1,10 @@
 import hashlib
+from textwrap import dedent
 import json
 from time import time
 from uuid import uuid4
+
+from flask import Flask
 
 
 class Blockchain(object):
@@ -69,4 +72,41 @@ class Blockchain(object):
     def last_block(self):
         # Returns the last block in the chain
         return self.chain[-1]
+    
+    def proof_of_work(self, last_proof):
+        """
+        Simple proof of Work Algorithm:
+        - Find a number p' such that hash(pp') contains leading 4 0's, where p is the previous p'
+        - p is the previous proof, and p' is the new proof
+        :param last_proof: <int>
+        :return: <int>
+        """
+
+        proof = 0
+        while self.valid_proof(last_proof, proof) is False:
+            proof += 1
+
+        return proof
+    
+    @staticmethod
+    def valid_proof(last_proof, proof):
+        """
+        Validates the Proof: Does hash(last_proof, proof) contain 4 leading zeroes?
+        :param last_proof: <int> Previous Proof
+        :param proof: <int> Current Proof
+        :return: <bool> True if correct, False if not.
+        """
+
+        guess = f'{last_proof}{proof}'.encode()
+        guess_hash = hashlib.sha256(guess).hexdigest()
+        return guess_hash[:4] == "0000"
+    
+#instantiate our Node
+
+app = Flask(__name__)
+
+# Generate a globally unique address for this node
+node_identifier = str(uuid4()).replace('-', '')
+
+#istantiate the Blockchain
 
